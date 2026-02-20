@@ -20,12 +20,16 @@ const LOGOS_FOLDER = '/imgs'; // <--- sua pasta de imagens (você pediu "imgs")
   };
 */
 const TEAM_LOGOS = {
-  "CÁGADOS": "CAGADOS.png",
-  "BOA VISTA": "BOA_VISTA.png",
-  "OURICURI": "OURICURI.png",
-  "LAGOA DA EMA": "LAGOA_DA_EMA.png",
-  "JUVENTUDE": "JUVENTUDE.png",
-  "SANTA RITA": "SANTA_RITA.png"
+  "ALGODÕES": "ALGODOESESCUDO.png",
+  "ALTO": "ALTO.png",
+  "ANACONDA": "ANACONDA.png",
+  "BARAÚNAS": "BARÁUNAS.png",
+  "BARRA": "BARRA.png",
+  "BOA VISTA": "BOA VISTA.png",
+  "BOA VISTA DO MEIO": "BOA VISTA DO MEIO.png",
+  "CAPIM GROSSO": "CAPIM GROSSO.png",
+  "GARROTE": "GARROTE.png",
+  "JUREMA": "JUREMA.png"
 };
 
 /* -----------------------
