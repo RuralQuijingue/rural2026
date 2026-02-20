@@ -365,3 +365,117 @@ span a:hover{
   color: #0c0844;
 }
 
+/* =========================
+   ESCUDOS DOS TIMES
+========================= */
+
+/* Header do card do time */
+.team-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px;
+  cursor:pointer;
+  border-bottom:1px solid var(--border);
+  transition:background .2s ease;
+}
+
+.team-header:hover{
+  background:rgba(0,0,0,0.03);
+}
+
+/* Área que contém logo + nome */
+.team-logo-wrap{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+/* Escudo */
+.team-logo-wrap img{
+  width:60px;
+  height:60px;
+  object-fit:contain;
+  border-radius:10px;
+  background:#fff;
+  padding:6px;
+  box-shadow:0 4px 10px rgba(0,0,0,.06);
+  transition:transform .2s ease;
+}
+
+/* Efeito leve ao passar mouse */
+.team-header:hover .team-logo-wrap img{
+  transform:scale(1.05);
+}
+
+/* Nome do time */
+.team-header h3{
+  margin:0;
+  font-size:16px;
+  font-weight:700;
+  color:#1b2b2b;
+}
+
+/* Bolinha de quantidade */
+.count-pill{
+  background:var(--accent-blue);
+  color:#fff;
+  font-size:12px;
+  padding:4px 8px;
+  border-radius:999px;
+  font-weight:600;
+}
+
+/* Card do time */
+.team-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  margin-bottom:14px;
+  box-shadow:0 6px 16px rgba(0,0,0,.04);
+}
+
+/* Corpo da tabela */
+.team-body{
+  padding:12px;
+  display:none;
+}
+
+/* Tabela */
+.players-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+
+.players-table th{
+  background:#f3f3f3;
+  text-align:left;
+  padding:10px;
+  font-weight:600;
+  border-bottom:1px solid var(--border);
+}
+
+.players-table td{
+  padding:8px 10px;
+  border-bottom:1px solid #eee;
+}
+
+/* Hover na linha */
+.players-table tbody tr:hover{
+  background:rgba(0,0,0,0.03);
+}
+
+/* Responsivo */
+@media (max-width: 600px){
+  .team-logo-wrap img{
+    width:50px;
+    height:50px;
+  }
+
+  .team-header h3{
+    font-size:14px;
+  }
+}
