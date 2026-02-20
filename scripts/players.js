@@ -1,6 +1,6 @@
 // players_noexport.js
-// Versão completa com mapeamento de todos os arquivos que você forneceu.
-// Coloque este arquivo na mesma pasta do seu HTML e crie uma pasta "imgs" com as imagens listadas.
+// Versão corrigida e estável — substitua seu arquivo atual por este.
+// Coloque a pasta "imgs" ao lado do HTML e inclua imgs/default.png como fallback.
 
 // -----------------------
 // Config
@@ -15,7 +15,7 @@ const DEFAULT_JSON_CANDIDATES = [
 
 // -----------------------
 // Mapeamento EXATO nome-do-time -> nome-do-arquivo (como estão na pasta)
-// Use exatamente os nomes que você informou
+// Ajuste se algum nome/arquivo estiver diferente
 // -----------------------
 const TEAM_LOGOS = {
   "ADESTRU": "ADESTRU.png",
@@ -32,8 +32,8 @@ const TEAM_LOGOS = {
   "Comissão1": "Comissão1.jpeg",
   "ESCUDO NG": "ESCUDO NG.png",
   "GARROTE": "GARROTE.png",
-  "JUREMA": "JUREMA.png",        // existe também JUREMA.jpeg; preferi .png aqui
-  "JUREMA.jpeg": "JUREMA.jpeg",  // cobertura caso JSON forneça com extensão
+  "JUREMA": "JUREMA.png",
+  "JUREMA.jpeg": "JUREMA.jpeg",
   "JUVENTUS FECHADO": "JUVENTUS FECHADO.png",
   "LAGOA DA EMA": "LAGOA DA EMA.png",
   "LAGOA DO CAPIM": "LAGOA DO CAPIM.png",
@@ -57,7 +57,7 @@ const TEAM_LOGOS = {
   "TERRA NOVA": "TERRA NOVA.png",
   "UNIÃO LUVENSE": "UNIÃO LUVENSE.png",
   "VILA MANANCIAL": "VILA MANANCIAL.png",
-  "a": "a", // se "a" for time, ajuste nome do arquivo se houver
+  "a": "a", // se "a" for um arquivo válido, ajuste; caso contrário remova
   "capoeira.jpeg": "capoeira.jpeg"
 };
 
@@ -74,11 +74,10 @@ function stripAccents(str){
 }
 
 function normalizeKey(key){
-  // usado para criar uma versão menos sensível a acentos/caixa/espaços
   return stripAccents(String(key||'')).trim().replace(/\s+/g, ' ').toUpperCase();
 }
 
-// constrói mapa normalizado para lookup tolerante
+// mapa normalizado (chave normalizada -> arquivo)
 const NORMALIZED_MAP = (function(){
   const m = {};
   Object.keys(TEAM_LOGOS).forEach(k => {
@@ -88,7 +87,7 @@ const NORMALIZED_MAP = (function(){
 })();
 
 // -----------------------
-// DOM selectors (assuma IDs no HTML: #playersGrid, #noData, #searchInput, #teamFilter)
+// DOM selectors (IDs esperados no HTML)
 // -----------------------
 const $ = s => document.querySelector(s);
 const playersGrid = $("#playersGrid");
@@ -97,7 +96,8 @@ const searchInput = $("#searchInput");
 const teamFilter = $("#teamFilter");
 
 // -----------------------
-// Cria <img> do escudo buscando no MAPA direto (mais confiável)
+// createLogoImg: tenta MAPA direto → normalized map → default.
+// NÃO faz fallback recursivo nem tenta várias extensões (evita loops/stack overflow).
 // -----------------------
 function createLogoImg(team, opts = {}){
   const size = opts.size || 60;
@@ -106,60 +106,43 @@ function createLogoImg(team, opts = {}){
   img.height = size;
   img.loading = 'lazy';
   img.style.objectFit = 'contain';
-  img.style.borderRadius = '8px';
+  img.style.borderRadius = opts.rounded ? '8px' : '0';
   img.alt = `${team} escudo`;
 
-  if(!team) {
+  // se não houver time, retorna default
+  if(!team){
     img.src = `${LOGOS_FOLDER}/default.png`;
     return img;
   }
 
-  // tentativa por chave exata
+  // 1) chave exata
   const direct = TEAM_LOGOS[team];
   if(direct){
     img.src = `${LOGOS_FOLDER}/${direct}`;
+    // onerror único → troca para default (não recursivo)
     img.onerror = function(){
-      // se falhar, tenta versão normalized se existir diferente, senão default
-      const normalized = NORMALIZED_MAP[normalizeKey(team)];
-      if(normalized && normalized !== direct){
-        this.onerror = null;
-        this.src = `${LOGOS_FOLDER}/${normalized}`;
-      } else {
-        this.onerror = null;
-        this.src = `${LOGOS_FOLDER}/default.png`;
-      }
-    };
-    return img;
-  }
-
-  // tentativa por normalized key
-  const norm = normalizeKey(team);
-  const normFile = NORMALIZED_MAP[norm];
-  if(normFile){
-    img.src = `${LOGOS_FOLDER}/${normFile}`;
-    img.onerror = function(){
+      console.warn(`Escudo não encontrado (arquivo mapeado faltando): ${direct} — usando default.png`);
       this.onerror = null;
       this.src = `${LOGOS_FOLDER}/default.png`;
     };
     return img;
   }
 
-  // última tentativa: monta nome simples (sem acento + underscores) com algumas extensões comuns
-  const base = normalizeKey(team).replace(/\s+/g, '_').toLowerCase();
-  const exts = ['png','webp','jpg','jpeg','svg'];
-  let tried = 0;
-  function tryNext(){
-    if(tried >= exts.length){
-      img.onerror = null;
-      img.src = `${LOGOS_FOLDER}/default.png`;
-      return;
-    }
-    const candidate = `${LOGOS_FOLDER}/${base}.${exts[tried]}`;
-    tried++;
-    img.onerror = tryNext;
-    img.src = candidate;
+  // 2) chave normalizada (ex.: acentos/caixa/espaços diferentes)
+  const normFile = NORMALIZED_MAP[ normalizeKey(team) ];
+  if(normFile){
+    img.src = `${LOGOS_FOLDER}/${normFile}`;
+    img.onerror = function(){
+      console.warn(`Escudo (normalizado) não encontrado: ${normFile} — usando default.png`);
+      this.onerror = null;
+      this.src = `${LOGOS_FOLDER}/default.png`;
+    };
+    return img;
   }
-  tryNext();
+
+  // 3) fallback direto para default (sem tentativas extras)
+  console.debug(`Nenhum mapeamento para time: "${team}" → usando default.png`);
+  img.src = `${LOGOS_FOLDER}/default.png`;
   return img;
 }
 
@@ -170,12 +153,12 @@ let rawRows = [];
 let teamsMap = {}; // { teamName: [player,...] }
 let allPlayers = [];
 
+// tenta extrair campos comuns do JSON
 function buildTeamsFromRows(rows){
   teamsMap = {};
   allPlayers = [];
-  // Espera-se que o JSON seja uma lista de objetos; tentamos ler campos comuns
+
   rows.forEach(r => {
-    // tenta vários caminhos (variação de colunas)
     const name = (r.name || r['Unnamed: 1'] || r['NOME'] || r['Nome'] || '').toString().trim();
     const team = (r.team || r['BID PRIMEIRA COPA RURAL QUIJINGUENSE'] || r['TIME'] || r['time'] || r['Clube'] || '').toString().trim();
 
@@ -207,7 +190,8 @@ function buildTeamsFromRows(rows){
 // -----------------------
 function renderTeamList(){
   const teams = Object.keys(teamsMap).sort((a,b) => a.localeCompare(b,'pt'));
-  // popula filtro de time (se existir)
+
+  // popula select de times (se existir)
   if(teamFilter){
     teamFilter.innerHTML = `<option value="all">Todos os times</option>` + teams.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)} (${teamsMap[t].length})</option>`).join('');
   }
@@ -359,7 +343,7 @@ function applyFilters(){
 
 // -----------------------
 // Carrega JSON (tenta múltiplos nomes)
- // -----------------------
+// -----------------------
 async function loadPlayersJson(){
   for(const url of DEFAULT_JSON_CANDIDATES){
     try {
