@@ -5,7 +5,7 @@
 // -----------------------
 // Config
 // -----------------------
-const LOGOS_FOLDER = '/imgs'; // pasta relativa onde estão os escudos (sem barra inicial)
+const LOGOS_FOLDER = 'imgs'; // pasta relativa onde estão os escudos (sem barra inicial)
 const DEFAULT_JSON_CANDIDATES = [
   'players_data.json',
   'players_data (1).json',
