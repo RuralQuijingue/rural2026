@@ -9,7 +9,7 @@ const sampleNews = [
     date: "2026-01-12T11:45:00",
     excerpt: "A comissão organizadora da 2ª Copa Rural do município de Quijingue já começou os preparativos para um campeonato que promete entrar na história. Em breve divulgaremos tabela de jogos, locais, horários e a cobertura completa dos confrontos, fique ligado para não perder nenhuma novidade!",
     content: "<p>A organização já está trabalhando na definição do regulamento, confirmação das equipes participantes e estrutura do campeonato. Em breve serão divulgados a tabela de jogos, locais das partidas, horários e todas as informações oficiais. A 2ª Copa Rural de Quijingue vem para fortalecer o esporte local e valorizar o futebol das comunidades rurais.</p>",
-    image: "imgs/comissão1.jpeg",
+    image: "imgs/Comissão1.jpeg",
     tag: "Destaque"
   },
   {
@@ -210,3 +210,4 @@ document.addEventListener("DOMContentLoaded", ()=> {
   renderNews();
   startNewsAuto();
 });
+
