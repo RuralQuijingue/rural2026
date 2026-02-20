@@ -20,9 +20,12 @@ const LOGOS_FOLDER = '/imgs'; // <--- sua pasta de imagens (você pediu "imgs")
   };
 */
 const TEAM_LOGOS = {
-  // preencha aqui se quiser mapeamento manual
-  // "CÁGADOS": "cagados.png",
-  // "OURICURI": "ouricuri.png",
+  "CÁGADOS": "CAGADOS.png",
+  "BOA VISTA": "BOA_VISTA.png",
+  "OURICURI": "OURICURI.png",
+  "LAGOA DA EMA": "LAGOA_DA_EMA.png",
+  "JUVENTUDE": "JUVENTUDE.png",
+  "SANTA RITA": "SANTA_RITA.png"
 };
 
 /* -----------------------
