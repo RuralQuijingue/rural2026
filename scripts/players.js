@@ -85,15 +85,15 @@ function makeCandidatesForTeam(team){
 
   for(const b of baseVariants){
     for(const ext of exts){
-      candidates.push(`/imga/${encodeURIComponent(b)}.${ext}`);
+      candidates.push(`/imgs/${encodeURIComponent(b)}.${ext}`);
       // também sem encode (alguns servidores servem melhor com file names brutos)
-      candidates.push(`/imga/${b}.${ext}`);
+      candidates.push(`/imgs/${b}.${ext}`);
     }
   }
 
   // último fallback: um arquivo padrão
-  candidates.push('/imga/default.png');
-  candidates.push('/imga/default.jpg');
+  candidates.push('/imgs/default.png');
+  candidates.push('/imgs/default.jpg');
 
   // dedupe mantendo ordem
   return [...new Map(candidates.map(c => [c, c])).values()];
