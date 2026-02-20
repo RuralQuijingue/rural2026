@@ -1,20 +1,33 @@
 // scripts/players_noexport.js
-// suporta fontes separadas por temporada (JSON + link da planilha)
+// Versão final criada para carregar jogadores + escudos da pasta /imgs
+// - Preencha TEAM_LOGOS para mapear nomes exatamente -> arquivo (mais confiável)
+// - Se não preencher, o script tentará variantes automáticas (normalize + extensões)
+// - Fallback: /imgs/default.png
 
-const DEFAULT_DATA_URL = 'players_data.json'; // fallback se temporada não tiver fonte
-// mapeie aqui as temporadas para seus JSONs e (opcional) URLs das planilhas
-const SEASON_SOURCES = {
-  "2026": {
-    json: "players_2026.json", // coloque esse arquivo no mesmo diretório
-    sheet: "https://docs.google.com/spreadsheets/d/ID_DA_PLANILHA_2026/htmlview"
-  },
-  "2025": {
-    json: "players_data.json",
-    sheet: "https://docs.google.com/spreadsheets/d/1AGNqeY21fvCs26rZq-J6jjYVwcB_skh5v8XHeKoBsLY/htmlview?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAb21jcAPvodtleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAafBDxnX-LFuZr0Z_PzBqSj_g6ot9kMpn3wPgJQGJuGODqSI-OSbSNzqwv3z4Q_aem_NSfG8ny_YpzE15RqKsa73g"
-  }
-  // adicione mais temporadas aqui
+const DEFAULT_DATA_URL = 'players_data.json'; // JSON padrão (coloque na mesma pasta do site)
+const LOGOS_FOLDER = '/imgs'; // <--- sua pasta de imagens (você pediu "imgs")
+
+/*
+  Se quiser máxima confiabilidade, preencha TEAM_LOGOS com as chaves EXACTAS
+  que aparecem no seu JSON (por ex: "CÁGADOS" em maiúsculas). O valor é o
+  nome do arquivo dentro de /imgs (ex: "cagados.png").
+
+  Exemplo:
+  const TEAM_LOGOS = {
+    "CÁGADOS": "cagados.png",
+    "OURICURI": "ouricuri.png",
+    ...
+  };
+*/
+const TEAM_LOGOS = {
+  // preencha aqui se quiser mapeamento manual
+  // "CÁGADOS": "cagados.png",
+  // "OURICURI": "ouricuri.png",
 };
 
+/* -----------------------
+   QuerySelectors (assuma que existam estes IDs no HTML)
+   ----------------------- */
 const $ = s => document.querySelector(s);
 const playersGrid = $("#playersGrid");
 const noDataEl = $("#noData");
@@ -24,110 +37,132 @@ const posFilter = $("#posFilter");
 const openSheet = $("#open-sheet");
 const seasonSelect = $("#season");
 
-let raw = []; // raw rows from JSON (todas as linhas da temporada atual)
-let teamsMap = {}; // { teamName: [playerObj, ...] }
-let allPlayers = []; // flattened list
-let cachedSeasonRows = {}; // cache: season -> rows
+let raw = []; // linhas brutas do JSON
+let teamsMap = {}; // { teamName: [playerObj...] }
+let allPlayers = []; // lista achatada
+let cachedSeasonRows = {}; // cache season -> rows
 
 /* -----------------------
-   Helpers para temporada
+   Helpers utilitários
    ----------------------- */
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
 
-function getSourceForSeason(season){
-  if(!season) return null;
-  return SEASON_SOURCES[season] || null;
+function stripAccents(str){
+  if(!str || !str.normalize) return str;
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function normalizeForFilename(team){
+  if(!team) return '';
+  let t = team.toString().trim();
+  // remove leading/trailing, remove punctuation except space/underscore/hyphen
+  t = t.replace(/[^\w\s-À-ÿ]/g, '');
+  t = stripAccents(t);
+  t = t.replace(/\s+/g, '_'); // underscores by default
+  return t.toLowerCase();
 }
 
 /* -----------------------
-   Helpers para imagens de escudo
+   Funções para tentar múltiplas imagens (fallback automático)
    ----------------------- */
 
 /*
-  Estratégia:
-  - tenta várias combinações de nome + extensões (.png, .jpg, .webp)
-  - tenta variantes: original (presume que nomes vêm em CAPS), lower, sem acento, espaços->underscores, espaços->hyphen
-  - se nenhuma existir (quando navegador dispara onerror), usa default '/imga/default.png'
-  - NÃO faz requisições síncronas ao servidor — deixamos o <img> tentar e no onerror trocamos para o próximo candidato
+  makeCandidatesForTeam(team):
+    Gera uma lista de URLs candidatas (em ordem) para o escudo do time.
+    Primeiro usa mapeamento manual TEAM_LOGOS se existir.
+    Caso contrário, gera variantes normalizadas.
 */
-
-function stripAccents(str){
-  return str.normalize && str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
 function makeCandidatesForTeam(team){
-  // Recebe team em CAPS (p.ex. "OURICURI" ou "CÁGADOS")
-  const cleaned = String(team || '').trim();
-  const baseVariants = new Set();
-
-  if(!cleaned) return [];
-
-  // originais
-  baseVariants.add(cleaned);
-  baseVariants.add(cleaned.toLowerCase());
-  baseVariants.add(stripAccents(cleaned));
-  baseVariants.add(stripAccents(cleaned).toLowerCase());
-
-  // underscore / hyphen variants
-  const underscored = cleaned.replace(/\s+/g, '_');
-  const hyphened = cleaned.replace(/\s+/g, '-');
-  baseVariants.add(underscored);
-  baseVariants.add(hyphened);
-  baseVariants.add(stripAccents(underscored).toLowerCase());
-  baseVariants.add(stripAccents(hyphened).toLowerCase());
-
-  // remove non-alnum except _ and -
-  const sanitized = cleaned.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_');
-  baseVariants.add(sanitized);
-  baseVariants.add(stripAccents(sanitized).toLowerCase());
-
-  const exts = ['png','webp','jpg','jpeg','svg'];
   const candidates = [];
+  if(!team) return candidates;
 
-  for(const b of baseVariants){
-    for(const ext of exts){
-      candidates.push(`/imgs/${encodeURIComponent(b)}.${ext}`);
-      // também sem encode (alguns servidores servem melhor com file names brutos)
-      candidates.push(`/imgs/${b}.${ext}`);
+  // 1) se há mapeamento manual (use diretamente)
+  if(TEAM_LOGOS[team]){
+    candidates.push(`${LOGOS_FOLDER}/${TEAM_LOGOS[team]}`);
+  }
+
+  // 2) variantes derivadas (mais chances)
+  const raw = team.toString().trim();
+  const variants = new Set();
+
+  // originais e sem acento
+  variants.add(raw);
+  variants.add(stripAccents(raw));
+  variants.add(raw.toLowerCase());
+  variants.add(stripAccents(raw).toLowerCase());
+
+  // underscores / hyphen / no-space
+  variants.add(raw.replace(/\s+/g, '_'));
+  variants.add(raw.replace(/\s+/g, '-'));
+  variants.add(stripAccents(raw).replace(/\s+/g, '_').toLowerCase());
+  variants.add(stripAccents(raw).replace(/\s+/g, '-').toLowerCase());
+
+  // sanitized (remoção de chars especiais) e lower
+  variants.add(raw.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_').toLowerCase());
+  variants.add(stripAccents(raw).replace(/[^\w\s-]/g, '').replace(/\s+/g, '_').toLowerCase());
+
+  // produce file candidates with common extensions
+  const exts = ['png','webp','jpg','jpeg','svg'];
+  for(const v of variants){
+    if(!v) continue;
+    for(const e of exts){
+      candidates.push(`${LOGOS_FOLDER}/${encodeURIComponent(v)}.${e}`);
+      candidates.push(`${LOGOS_FOLDER}/${v}.${e}`); // without encode
     }
   }
 
-  // último fallback: um arquivo padrão
-  candidates.push('/imgs/default.png');
-  candidates.push('/imgs/default.jpg');
-
-  // dedupe mantendo ordem
+  // finally fallback defaults
+  candidates.push(`${LOGOS_FOLDER}/default.png`);
+  candidates.push(`${LOGOS_FOLDER}/default.jpg`);
+  // dedupe keeping order
   return [...new Map(candidates.map(c => [c, c])).values()];
 }
 
-// cria <img> que tenta múltiplas fontes, trocando no onerror
-function createLogoImg(team, sizeClass = 'logo'){
+/*
+  createLogoImg(team, {className='logo', size: number (optional)})
+  - cria <img> que percorre candidatos até encontrar um que carregue
+  - se nenhum carregar, esconde a imagem para não quebrar layout (ou mostra default)
+*/
+function createLogoImg(team, opts = {}){
+  const size = opts.size || 60;
+  const className = opts.className || 'logo';
   const candidates = makeCandidatesForTeam(team);
   let idx = 0;
   const img = document.createElement('img');
-  img.className = sizeClass;
+  img.className = className;
   img.alt = `${team} escudo`;
   img.loading = 'lazy';
-  img.dataset.team = team;
+  img.width = size;
+  img.height = size;
+  img.style.objectFit = 'contain';
   img.style.display = 'inline-block';
   img.style.verticalAlign = 'middle';
-  img.style.objectFit = 'contain';
-  // começa com primeiro candidato
+
+  if(candidates.length === 0){
+    img.style.display = 'none';
+    return img;
+  }
+
   img.src = candidates[idx];
 
   img.onerror = function(){
     idx++;
     if(idx < candidates.length){
-      // tenta próximo candidato
-      this.onerror = null; // remove temporariamente para evitar recursão infinita em alguns browsers
-      // pequena micro-tarefa para forçar update e reatribuir onerror com closure
+      // switch to next candidate
+      // remove current onerror to avoid possible recursive issues, then reassign after src change
+      this.onerror = null;
+      const that = this;
       setTimeout(() => {
-        this.onerror = function(){ img.onerror(); };
-        this.src = candidates[idx];
+        that.onerror = function(){ img.onerror(); };
+        that.src = candidates[idx];
       }, 0);
     } else {
-      // nenhum candidato funcionou — esconder ou manter default se existir
-      // se chegou ao final, tenta mostrar nada (oculta) para não quebrar layout
+      // nenhum candidato funcionou
+      // preferimos esconder para evitar "imagem quebrada" no layout
+      // se você preferir mostrar default, remova a linha abaixo e coloque src = '/imgs/default.png'
       this.style.display = 'none';
+      console.warn('Logo não encontrada para time:', team);
     }
   };
 
@@ -135,19 +170,20 @@ function createLogoImg(team, sizeClass = 'logo'){
 }
 
 /* -----------------------
-   (SEU PARSER / LÓGICA EXISTENTE)
+   Parser (reaproveitado / adaptado do seu original)
    ----------------------- */
 
 function isHeaderRow(row){
   const v = (row['Unnamed: 1'] || '').toString().trim().toUpperCase();
-  return v.includes('NOME');
+  return v.includes('NOME') || v === 'NOME DO ATLETA' || v === 'NOME';
 }
 
 function isTeamRow(row){
   const v = (row['BID PRIMEIRA COPA RURAL QUIJINGUENSE'] || '').toString().trim();
   if(!v) return false;
   const up = v.toUpperCase();
-  if(up.includes('LOCAL') || up.includes('GOLS') || up.includes('N°')) return false;
+  if(up.includes('LOCAL') || up.includes('GOLS') || up.includes('N°') || up.includes('Nº')) return false;
+  // se o campo for não-numérico, consideramos nome de time
   return isNaN(Number(v));
 }
 
@@ -192,6 +228,7 @@ function parseRows(rows){
       i = k-1;
     }
   }
+  // fallback caso o formato seja "linha por jogador" sem headers
   if(Object.keys(teamsMap).length === 0){
     rows.forEach(r => {
       const name = (r['Unnamed: 1'] || '').toString().trim();
@@ -219,73 +256,76 @@ function parseRows(rows){
 }
 
 /* -----------------------
-   UI builders (seu código) - atualizado para exibir escudo
+   UI Builders (cards de times + tabelas)
    ----------------------- */
 
 function buildTeamList(){
   const teams = Object.keys(teamsMap).sort((a,b)=> a.localeCompare(b,'pt'));
-  teamFilter.innerHTML = `<option value="all">Todos os times</option>` + teams.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)} (${teamsMap[t].length})</option>`).join('');
+  if(teamFilter){
+    teamFilter.innerHTML = `<option value="all">Todos os times</option>` + teams.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)} (${teamsMap[t].length})</option>`).join('');
+  }
   renderTeams(teams);
 }
 
 function renderTeams(teams){
+  if(!playersGrid) return;
   if(!teams || teams.length === 0){
     playersGrid.innerHTML = '';
-    noDataEl.style.display = 'block';
+    if(noDataEl) noDataEl.style.display = 'block';
     return;
   }
-  noDataEl.style.display = 'none';
+  if(noDataEl) noDataEl.style.display = 'none';
+
   const container = document.createElement('div');
   container.className = 'teams-container';
 
   teams.forEach(team => {
     const players = teamsMap[team];
-    // criar card
+
     const section = document.createElement('section');
     section.className = 'team-card';
 
-    // header (com escudo)
     const header = document.createElement('div');
     header.className = 'team-header';
     header.setAttribute('data-team', team);
 
-    // logo (criada com tentativa de múltiplos nomes)
     const logoWrap = document.createElement('div');
     logoWrap.className = 'team-logo-wrap';
     logoWrap.style.display = 'flex';
     logoWrap.style.alignItems = 'center';
-    logoWrap.style.gap = '10px';
+    logoWrap.style.gap = '12px';
 
-    const logoImg = createLogoImg(team);
-    logoImg.style.width = '64px';
-    logoImg.style.height = '64px';
-    logoImg.style.borderRadius = '8px';
-    logoImg.style.background = '#fff';
-    logoImg.style.boxShadow = '0 2px 6px rgba(0,0,0,.06)';
+    const logoImg = createLogoImg(team, {size: 60, className: 'team-logo-img'});
+    logoImg.style.width = '60px';
+    logoImg.style.height = '60px';
+    logoImg.style.borderRadius = '10px';
     logoWrap.appendChild(logoImg);
 
-    const titleWrap = document.createElement('div');
-    titleWrap.style.display = 'flex';
-    titleWrap.style.alignItems = 'center';
-    titleWrap.style.gap = '8px';
-    titleWrap.innerHTML = `<h3 style="margin:0; font-size:16px;">${escapeHtml(team)}</h3> <div class="count-pill" style="margin-left:6px;">${players.length}</div>`;
+    const title = document.createElement('div');
+    title.style.display = 'flex';
+    title.style.alignItems = 'center';
+    title.style.gap = '8px';
+    title.innerHTML = `<h3 style="margin:0; font-size:16px;">${escapeHtml(team)}</h3> <div class="count-pill" style="margin-left:6px;">${players.length}</div>`;
+    logoWrap.appendChild(title);
 
-    logoWrap.appendChild(titleWrap);
     header.appendChild(logoWrap);
+    section.appendChild(header);
 
-    // body (tabela)
+    // corpo (tabela)
     const body = document.createElement('div');
     body.className = 'team-body';
     body.style.display = 'none';
+    body.style.padding = '12px';
 
-    const scrollWrap = document.createElement('div');
-    scrollWrap.style.overflow = 'auto';
+    const tableWrap = document.createElement('div');
+    tableWrap.style.overflow = 'auto';
 
     const table = document.createElement('table');
     table.className = 'players-table';
+    table.style.width = '100%';
     table.innerHTML = `<thead><tr><th>Nº</th><th>Nome</th><th>Apelido</th><th>Idade</th><th>Localidade</th><th>Situação</th><th>Gols</th><th>Cartões</th></tr></thead>`;
-
     const tbody = document.createElement('tbody');
+
     players.forEach(p => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -302,15 +342,12 @@ function renderTeams(teams){
     });
 
     table.appendChild(tbody);
-    scrollWrap.appendChild(table);
-    body.appendChild(scrollWrap);
-
-    section.appendChild(header);
+    tableWrap.appendChild(table);
+    body.appendChild(tableWrap);
     section.appendChild(body);
     container.appendChild(section);
   });
 
-  // trocar o conteúdo
   playersGrid.innerHTML = '';
   playersGrid.appendChild(container);
 
@@ -328,12 +365,11 @@ function renderTeams(teams){
 }
 
 /* -----------------------
-   Filter (seu código) - atualizado para exibir escudo nos resultados filtrados
+   Filtros
    ----------------------- */
-
 function applyFilters(){
-  const q = (searchInput.value || '').trim().toLowerCase();
-  const team = teamFilter.value;
+  const q = (searchInput && searchInput.value) ? searchInput.value.trim().toLowerCase() : '';
+  const team = (teamFilter && teamFilter.value) ? teamFilter.value : 'all';
   let filtered = allPlayers.slice();
   if(team && team !== 'all') filtered = filtered.filter(p => p.team === team);
   if(q){
@@ -351,9 +387,14 @@ function applyFilters(){
     map[p.team].push(p);
   });
   const teams = Object.keys(map).sort((a,b)=> a.localeCompare(b,'pt'));
-  if(teams.length === 0){ playersGrid.innerHTML=''; noDataEl.style.display='block'; return;}
-  noDataEl.style.display='none';
+  if(teams.length === 0){
+    if(playersGrid) playersGrid.innerHTML='';
+    if(noDataEl) noDataEl.style.display='block';
+    return;
+  }
+  if(noDataEl) noDataEl.style.display='none';
 
+  // renderiza somente os times filtrados (reaproveita lógica)
   const container = document.createElement('div');
   container.className = 'teams-container';
 
@@ -370,34 +411,37 @@ function applyFilters(){
     logoWrap.className = 'team-logo-wrap';
     logoWrap.style.display = 'flex';
     logoWrap.style.alignItems = 'center';
-    logoWrap.style.gap = '10px';
+    logoWrap.style.gap = '12px';
 
-    const logoImg = createLogoImg(team);
+    const logoImg = createLogoImg(team, {size:56});
     logoImg.style.width = '56px';
     logoImg.style.height = '56px';
     logoWrap.appendChild(logoImg);
 
-    const titleWrap = document.createElement('div');
-    titleWrap.style.display = 'flex';
-    titleWrap.style.alignItems = 'center';
-    titleWrap.style.gap = '8px';
-    titleWrap.innerHTML = `<h3 style="margin:0; font-size:15px;">${escapeHtml(team)}</h3> <div class="count-pill" style="margin-left:6px;">${players.length}</div>`;
+    const title = document.createElement('div');
+    title.style.display = 'flex';
+    title.style.alignItems = 'center';
+    title.style.gap = '8px';
+    title.innerHTML = `<h3 style="margin:0; font-size:15px;">${escapeHtml(team)}</h3> <div class="count-pill" style="margin-left:6px;">${players.length}</div>`;
+    logoWrap.appendChild(title);
 
-    logoWrap.appendChild(titleWrap);
     header.appendChild(logoWrap);
+    section.appendChild(header);
 
     const body = document.createElement('div');
     body.className = 'team-body';
     body.style.display = 'block';
+    body.style.padding = '12px';
 
-    const scrollWrap = document.createElement('div');
-    scrollWrap.style.overflow = 'auto';
+    const tableWrap = document.createElement('div');
+    tableWrap.style.overflow = 'auto';
 
     const table = document.createElement('table');
     table.className = 'players-table';
+    table.style.width = '100%';
     table.innerHTML = `<thead><tr><th>Nº</th><th>Nome</th><th>Apelido</th><th>Idade</th><th>Localidade</th><th>Situação</th><th>Gols</th><th>Cartões</th></tr></thead>`;
-
     const tbody = document.createElement('tbody');
+
     players.forEach(p => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -414,10 +458,8 @@ function applyFilters(){
     });
 
     table.appendChild(tbody);
-    scrollWrap.appendChild(table);
-    body.appendChild(scrollWrap);
-
-    section.appendChild(header);
+    tableWrap.appendChild(table);
+    body.appendChild(tableWrap);
     section.appendChild(body);
     container.appendChild(section);
   });
@@ -437,13 +479,27 @@ function applyFilters(){
 }
 
 /* -----------------------
-   Carregamento por temporada (fetch dinâmico + cache)
+   Carregamento de temporadas (fetch + cache)
    ----------------------- */
 
-async function loadSeasonRows(season){
-  // se já temos em cache, retorna
-  if(cachedSeasonRows[season]) return cachedSeasonRows[season];
+const SEASON_SOURCES = {
+  "2026": {
+    json: "players_2026.json",
+    sheet: ""
+  },
+  "2025": {
+    json: "players_data.json",
+    sheet: ""
+  }
+};
 
+function getSourceForSeason(season){
+  if(!season) return null;
+  return SEASON_SOURCES[season] || null;
+}
+
+async function loadSeasonRows(season){
+  if(cachedSeasonRows[season]) return cachedSeasonRows[season];
   const src = getSourceForSeason(season);
   const url = src && src.json ? src.json : DEFAULT_DATA_URL;
   try{
@@ -454,25 +510,22 @@ async function loadSeasonRows(season){
     return rows;
   }catch(err){
     console.error(err);
-    // retornar array vazio para evitar quebrar página
     return [];
   }
 }
 
 async function updateForSeason(season){
-  // atualizar link da planilha (se existir no mapa)
   const src = getSourceForSeason(season);
   if(src && src.sheet && openSheet) openSheet.href = src.sheet;
   else if(openSheet) openSheet.href = '#';
 
-  // carregar rows para a temporada (com cache)
   const rows = await loadSeasonRows(season);
-  raw = rows.slice(); // set raw para a temporada atual
+  raw = rows.slice();
   parseRows(raw);
   buildTeamList();
-  // reset filtros visuais ao trocar temporada (opcional)
-  searchInput.value = '';
-  teamFilter.value = 'all';
+  // reset filters
+  if(searchInput) searchInput.value = '';
+  if(teamFilter) teamFilter.value = 'all';
   applyFilters();
 }
 
@@ -482,45 +535,31 @@ async function updateForSeason(season){
 
 async function init(){
   try{
-    // popular seasonSelect com as chaves de SEASON_SOURCES, respeitando a ordem
     if(seasonSelect){
       const seasons = Object.keys(SEASON_SOURCES);
       if(seasons.length){
         seasonSelect.innerHTML = seasons.map(s => `<option value="${s}">${s}</option>`).join('');
       }
+      seasonSelect.addEventListener('change', (e)=> updateForSeason(e.target.value));
     }
 
-    // temporada inicial (select ou primeira do mapa ou 'all')
-    const initialSeason = (seasonSelect && seasonSelect.value) ? seasonSelect.value : (Object.keys(SEASON_SOURCES)[0] || 'all');
-
-    if(seasonSelect){
-      seasonSelect.addEventListener('change', (e) => {
-        updateForSeason(e.target.value);
-      });
-    }
-
-    // carrega primeira temporada
+    const initialSeason = (seasonSelect && seasonSelect.value) ? seasonSelect.value : (Object.keys(SEASON_SOURCES)[0] || '2025');
     await updateForSeason(initialSeason);
-
   }catch(err){
     console.error(err);
-    playersGrid.innerHTML = `<div style="padding:18px;color:var(--muted)">Erro ao iniciar o módulo de jogadores.</div>`;
+    if(playersGrid) playersGrid.innerHTML = `<div style="padding:18px;color:var(--muted)">Erro ao iniciar o módulo de jogadores.</div>`;
   }
 }
 
 /* -----------------------
    Listeners
    ----------------------- */
-
-searchInput.addEventListener('input', ()=> applyFilters());
-teamFilter.addEventListener('change', ()=> applyFilters());
+if(searchInput) searchInput.addEventListener('input', ()=> applyFilters());
+if(teamFilter) teamFilter.addEventListener('change', ()=> applyFilters());
 if(posFilter) posFilter.addEventListener('change', ()=> applyFilters());
 
 document.addEventListener('DOMContentLoaded', ()=> init());
 
 /* -----------------------
-   Pequenas funções utilitárias (mantidas)
+   FIM DO ARQUIVO
    ----------------------- */
-
-function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function escapeAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
