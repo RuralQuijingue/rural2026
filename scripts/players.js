@@ -39,6 +39,102 @@ function getSourceForSeason(season){
 }
 
 /* -----------------------
+   Helpers para imagens de escudo
+   ----------------------- */
+
+/*
+  Estratégia:
+  - tenta várias combinações de nome + extensões (.png, .jpg, .webp)
+  - tenta variantes: original (presume que nomes vêm em CAPS), lower, sem acento, espaços->underscores, espaços->hyphen
+  - se nenhuma existir (quando navegador dispara onerror), usa default '/imga/default.png'
+  - NÃO faz requisições síncronas ao servidor — deixamos o <img> tentar e no onerror trocamos para o próximo candidato
+*/
+
+function stripAccents(str){
+  return str.normalize && str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function makeCandidatesForTeam(team){
+  // Recebe team em CAPS (p.ex. "OURICURI" ou "CÁGADOS")
+  const cleaned = String(team || '').trim();
+  const baseVariants = new Set();
+
+  if(!cleaned) return [];
+
+  // originais
+  baseVariants.add(cleaned);
+  baseVariants.add(cleaned.toLowerCase());
+  baseVariants.add(stripAccents(cleaned));
+  baseVariants.add(stripAccents(cleaned).toLowerCase());
+
+  // underscore / hyphen variants
+  const underscored = cleaned.replace(/\s+/g, '_');
+  const hyphened = cleaned.replace(/\s+/g, '-');
+  baseVariants.add(underscored);
+  baseVariants.add(hyphened);
+  baseVariants.add(stripAccents(underscored).toLowerCase());
+  baseVariants.add(stripAccents(hyphened).toLowerCase());
+
+  // remove non-alnum except _ and -
+  const sanitized = cleaned.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_');
+  baseVariants.add(sanitized);
+  baseVariants.add(stripAccents(sanitized).toLowerCase());
+
+  const exts = ['png','webp','jpg','jpeg','svg'];
+  const candidates = [];
+
+  for(const b of baseVariants){
+    for(const ext of exts){
+      candidates.push(`/imga/${encodeURIComponent(b)}.${ext}`);
+      // também sem encode (alguns servidores servem melhor com file names brutos)
+      candidates.push(`/imga/${b}.${ext}`);
+    }
+  }
+
+  // último fallback: um arquivo padrão
+  candidates.push('/imga/default.png');
+  candidates.push('/imga/default.jpg');
+
+  // dedupe mantendo ordem
+  return [...new Map(candidates.map(c => [c, c])).values()];
+}
+
+// cria <img> que tenta múltiplas fontes, trocando no onerror
+function createLogoImg(team, sizeClass = 'logo'){
+  const candidates = makeCandidatesForTeam(team);
+  let idx = 0;
+  const img = document.createElement('img');
+  img.className = sizeClass;
+  img.alt = `${team} escudo`;
+  img.loading = 'lazy';
+  img.dataset.team = team;
+  img.style.display = 'inline-block';
+  img.style.verticalAlign = 'middle';
+  img.style.objectFit = 'contain';
+  // começa com primeiro candidato
+  img.src = candidates[idx];
+
+  img.onerror = function(){
+    idx++;
+    if(idx < candidates.length){
+      // tenta próximo candidato
+      this.onerror = null; // remove temporariamente para evitar recursão infinita em alguns browsers
+      // pequena micro-tarefa para forçar update e reatribuir onerror com closure
+      setTimeout(() => {
+        this.onerror = function(){ img.onerror(); };
+        this.src = candidates[idx];
+      }, 0);
+    } else {
+      // nenhum candidato funcionou — esconder ou manter default se existir
+      // se chegou ao final, tenta mostrar nada (oculta) para não quebrar layout
+      this.style.display = 'none';
+    }
+  };
+
+  return img;
+}
+
+/* -----------------------
    (SEU PARSER / LÓGICA EXISTENTE)
    ----------------------- */
 
@@ -123,7 +219,7 @@ function parseRows(rows){
 }
 
 /* -----------------------
-   UI builders (seu código)
+   UI builders (seu código) - atualizado para exibir escudo
    ----------------------- */
 
 function buildTeamList(){
@@ -139,10 +235,60 @@ function renderTeams(teams){
     return;
   }
   noDataEl.style.display = 'none';
-  const html = teams.map(team => {
+  const container = document.createElement('div');
+  container.className = 'teams-container';
+
+  teams.forEach(team => {
     const players = teamsMap[team];
-    const rows = players.map(p => `
-      <tr>
+    // criar card
+    const section = document.createElement('section');
+    section.className = 'team-card';
+
+    // header (com escudo)
+    const header = document.createElement('div');
+    header.className = 'team-header';
+    header.setAttribute('data-team', team);
+
+    // logo (criada com tentativa de múltiplos nomes)
+    const logoWrap = document.createElement('div');
+    logoWrap.className = 'team-logo-wrap';
+    logoWrap.style.display = 'flex';
+    logoWrap.style.alignItems = 'center';
+    logoWrap.style.gap = '10px';
+
+    const logoImg = createLogoImg(team);
+    logoImg.style.width = '64px';
+    logoImg.style.height = '64px';
+    logoImg.style.borderRadius = '8px';
+    logoImg.style.background = '#fff';
+    logoImg.style.boxShadow = '0 2px 6px rgba(0,0,0,.06)';
+    logoWrap.appendChild(logoImg);
+
+    const titleWrap = document.createElement('div');
+    titleWrap.style.display = 'flex';
+    titleWrap.style.alignItems = 'center';
+    titleWrap.style.gap = '8px';
+    titleWrap.innerHTML = `<h3 style="margin:0; font-size:16px;">${escapeHtml(team)}</h3> <div class="count-pill" style="margin-left:6px;">${players.length}</div>`;
+
+    logoWrap.appendChild(titleWrap);
+    header.appendChild(logoWrap);
+
+    // body (tabela)
+    const body = document.createElement('div');
+    body.className = 'team-body';
+    body.style.display = 'none';
+
+    const scrollWrap = document.createElement('div');
+    scrollWrap.style.overflow = 'auto';
+
+    const table = document.createElement('table');
+    table.className = 'players-table';
+    table.innerHTML = `<thead><tr><th>Nº</th><th>Nome</th><th>Apelido</th><th>Idade</th><th>Localidade</th><th>Situação</th><th>Gols</th><th>Cartões</th></tr></thead>`;
+
+    const tbody = document.createElement('tbody');
+    players.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
         <td style="width:70px">${escapeHtml(p.number)}</td>
         <td>${escapeHtml(p.name)}</td>
         <td>${escapeHtml(p.apelido)}</td>
@@ -151,24 +297,24 @@ function renderTeams(teams){
         <td>${escapeHtml(p.situacao)}</td>
         <td style="width:90px">${escapeHtml(p.gols)}</td>
         <td style="width:120px">${escapeHtml(p.cartoes_a)} ${p.cartoes_v?'/ '+escapeHtml(p.cartoes_v):''}</td>
-      </tr>`).join('');
-    return `
-      <section class="team-card">
-        <div class="team-header" data-team="${escapeAttr(team)}">
-          <h3>${escapeHtml(team)}</h3>
-          <div class="count-pill">${players.length}</div>
-        </div>
-        <div class="team-body">
-          <div style="overflow:auto">
-            <table class="players-table">
-              <thead><tr><th>Nº</th><th>Nome</th><th>Apelido</th><th>Idade</th><th>Localidade</th><th>Situação</th><th>Gols</th><th>Cartões</th></tr></thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>
-        </div>
-      </section>`;
-  }).join('');
-  playersGrid.innerHTML = html;
+      `;
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    scrollWrap.appendChild(table);
+    body.appendChild(scrollWrap);
+
+    section.appendChild(header);
+    section.appendChild(body);
+    container.appendChild(section);
+  });
+
+  // trocar o conteúdo
+  playersGrid.innerHTML = '';
+  playersGrid.appendChild(container);
+
+  // listeners para abrir/fechar
   document.querySelectorAll('.team-header').forEach(h => {
     h.onclick = () => {
       const body = h.nextElementSibling;
@@ -181,11 +327,8 @@ function renderTeams(teams){
   });
 }
 
-function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function escapeAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
-
 /* -----------------------
-   Filter (seu código)
+   Filter (seu código) - atualizado para exibir escudo nos resultados filtrados
    ----------------------- */
 
 function applyFilters(){
@@ -210,10 +353,54 @@ function applyFilters(){
   const teams = Object.keys(map).sort((a,b)=> a.localeCompare(b,'pt'));
   if(teams.length === 0){ playersGrid.innerHTML=''; noDataEl.style.display='block'; return;}
   noDataEl.style.display='none';
-  const html = teams.map(team => {
+
+  const container = document.createElement('div');
+  container.className = 'teams-container';
+
+  teams.forEach(team => {
     const players = map[team];
-    const rows = players.map(p => `
-      <tr>
+    const section = document.createElement('section');
+    section.className = 'team-card';
+
+    const header = document.createElement('div');
+    header.className = 'team-header';
+    header.setAttribute('data-team', team);
+
+    const logoWrap = document.createElement('div');
+    logoWrap.className = 'team-logo-wrap';
+    logoWrap.style.display = 'flex';
+    logoWrap.style.alignItems = 'center';
+    logoWrap.style.gap = '10px';
+
+    const logoImg = createLogoImg(team);
+    logoImg.style.width = '56px';
+    logoImg.style.height = '56px';
+    logoWrap.appendChild(logoImg);
+
+    const titleWrap = document.createElement('div');
+    titleWrap.style.display = 'flex';
+    titleWrap.style.alignItems = 'center';
+    titleWrap.style.gap = '8px';
+    titleWrap.innerHTML = `<h3 style="margin:0; font-size:15px;">${escapeHtml(team)}</h3> <div class="count-pill" style="margin-left:6px;">${players.length}</div>`;
+
+    logoWrap.appendChild(titleWrap);
+    header.appendChild(logoWrap);
+
+    const body = document.createElement('div');
+    body.className = 'team-body';
+    body.style.display = 'block';
+
+    const scrollWrap = document.createElement('div');
+    scrollWrap.style.overflow = 'auto';
+
+    const table = document.createElement('table');
+    table.className = 'players-table';
+    table.innerHTML = `<thead><tr><th>Nº</th><th>Nome</th><th>Apelido</th><th>Idade</th><th>Localidade</th><th>Situação</th><th>Gols</th><th>Cartões</th></tr></thead>`;
+
+    const tbody = document.createElement('tbody');
+    players.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
         <td style="width:70px">${escapeHtml(p.number)}</td>
         <td>${escapeHtml(p.name)}</td>
         <td>${escapeHtml(p.apelido)}</td>
@@ -222,24 +409,22 @@ function applyFilters(){
         <td>${escapeHtml(p.situacao)}</td>
         <td style="width:90px">${escapeHtml(p.gols)}</td>
         <td style="width:120px">${escapeHtml(p.cartoes_a)} ${p.cartoes_v?'/ '+escapeHtml(p.cartoes_v):''}</td>
-      </tr>`).join('');
-    return `
-      <section class="team-card">
-        <div class="team-header" data-team="${escapeAttr(team)}">
-          <h3>${escapeHtml(team)}</h3>
-          <div class="count-pill">${players.length}</div>
-        </div>
-        <div class="team-body" style="display:block">
-          <div style="overflow:auto">
-            <table class="players-table">
-              <thead><tr><th>Nº</th><th>Nome</th><th>Apelido</th><th>Idade</th><th>Localidade</th><th>Situação</th><th>Gols</th><th>Cartões</th></tr></thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>
-        </div>
-      </section>`;
-  }).join('');
-  playersGrid.innerHTML = html;
+      `;
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    scrollWrap.appendChild(table);
+    body.appendChild(scrollWrap);
+
+    section.appendChild(header);
+    section.appendChild(body);
+    container.appendChild(section);
+  });
+
+  playersGrid.innerHTML = '';
+  playersGrid.appendChild(container);
+
   document.querySelectorAll('.team-header').forEach(h => {
     h.onclick = () => {
       const body = h.nextElementSibling;
@@ -332,3 +517,10 @@ teamFilter.addEventListener('change', ()=> applyFilters());
 if(posFilter) posFilter.addEventListener('change', ()=> applyFilters());
 
 document.addEventListener('DOMContentLoaded', ()=> init());
+
+/* -----------------------
+   Pequenas funções utilitárias (mantidas)
+   ----------------------- */
+
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
