@@ -1,0 +1,370 @@
+:root{ 
+  --green:#0e0944;
+  --border:#e6eaec;
+  --card:#ffffff;
+  --muted:#8a9399;
+  --max-width:1180px;
+  --radius:10px;
+}
+
+/* base original (mantido e levemente ampliado) */
+*{ box-sizing:border-box }
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background:#f4f6f7;
+  color:#1b2b2b;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* small helper to ensure header and page share same container */
+.container-max {
+  max-width: var(--max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 12px;
+  padding-right: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+/* HEADER */
+.topbar{
+  background:var(--green);
+  color:#fff;
+  position:sticky;
+  top:0;
+  z-index:10;
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+}
+
+/* garante que o inner use a mesma largura do .page (alinha com cards) */
+.topbar-inner{
+  max-width:var(--max-width);
+  margin:auto;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-sizing:border-box;
+}
+
+/* manter a fonte conforme seu original (não alterar visual) */
+
+.back, .close{
+  color:#cfeee0;
+  text-decoration:none;
+  font-size:20px;
+}
+
+.brand{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  overflow:hidden;
+}
+
+.brand-title{
+  color:#fff;
+  text-decoration:none;
+  font-weight:600;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  overflow:hidden;
+}
+
+.brand-sub{
+  font-size:12px;
+  opacity:.85;
+  white-space:nowrap;
+}
+
+/* nav */
+.topnav{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  overflow-x:auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ocultar scrollbar cross-browser */
+.topnav::-webkit-scrollbar{ display:none; }
+.topnav{ scrollbar-width:none; }
+
+.nav-link:hover{
+  color: orange;
+  border-bottom: orange;
+}
+
+.nav-link{
+  color:#e0f2eb;
+  text-decoration:none;
+  padding:8px 12px;
+  border-radius:6px;
+  font-size:14px;
+  white-space:nowrap;
+  flex:0 0 auto;
+}
+
+.nav-link.active,
+.nav-link:hover{
+  background:rgba(255,255,255,.1);
+}
+
+/* controls */
+.controls label{
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.controls select{
+  background:rgba(255,255,255,.15);
+  border:none;
+  color:#fff;
+  padding:5px 8px;
+  border-radius:5px;
+}
+
+/* PAGE */
+.page{
+  max-width:var(--max-width);
+  margin:20px auto;
+  padding:0 12px;
+  box-sizing:border-box;
+}
+
+/* card table */
+.table-card{
+  background:var(--card);
+  border-radius:10px;
+  border:1px solid var(--border);
+  box-shadow:0 6px 16px rgba(0,0,0,.05);
+  overflow:hidden;
+}
+
+.table-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.table-header h2{ margin:0; font-size:18px; color:#223; }
+.legend{ display:flex; gap:10px; align-items:center; font-size:13px; color:var(--muted) }
+.legend-item{ padding:6px 8px; border-radius:6px; color:white; font-weight:600; font-size:12px }
+.legend-item.oit { background:#1e88e5 }
+.legend-item.qua { background:#2b20a6 }
+.legend-item.sem { background:#fb8c00 }
+.legend-item.fin { background:#00fb79 }
+.legend-item.cam { background:#b1b126 }
+.legend-item.eli { background:#ded036 }
+.classificado { background:#43a047 }
+.eliminado { background:#e53935 }
+
+.table-wrap{
+  overflow:auto;
+  max-height:650px;
+}
+
+/* TABLE (desktop default) */
+table{
+  width:100%;
+  min-width:920px; /* força scroller horizontal em telas muito pequenas */
+  border-collapse:collapse;
+}
+
+thead th{
+  position:sticky;
+  top:0;
+  background:#f9fbfc;
+  font-size:12px;
+  color:#445;
+  padding:12px;
+  border-bottom:1px solid var(--border);
+  text-align:center;
+}
+
+thead th.col-club{ text-align:left; padding-left:18px }
+
+tbody td{
+  padding:12px;
+  font-size:13px;
+  border-bottom:1px solid #f0f2f3;
+  text-align:center;
+  vertical-align:middle;
+}
+
+tbody tr:hover{
+  background:#f9fcfd;
+}
+/* ZONAS DA TABELA — BARRA LATERAL LIMPA */
+tbody tr.oit td:first-child{
+  border-left: 5px solid #1e88e5;
+}
+tbody tr.qua td:first-child{
+  border-left: 5px solid #2b20a6;
+}
+tbody tr.sem td:first-child{
+  border-left: 5px solid #fb8c00;
+}
+tbody tr.fin td:first-child{
+  border-left: 5px solid #00fb79;
+}
+tbody tr.cam td:first-child{
+  border-left: 5px solid #fbe600;
+}
+tbody tr.sula td:first-child{
+  border-left: 5px solid #43a047;
+}
+tbody tr.rebaixado td:first-child{
+  border-left: 5px solid #e53935;
+}
+
+
+/* CLUB cell */
+.club-cell{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-align:left;
+}
+.club-name{
+  font-weight:600;
+  color:#172;
+}
+.logo-img,
+.logo-fallback{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:#fff;
+  border:1px solid rgba(0,0,0,.1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+}
+
+/* SG */
+.sg-pos{ color:#1e8f3a; font-weight:700 }
+.sg-neg{ color:#c62828; font-weight:700 }
+.sg-zero{ color:#777 }
+
+/* FORMA */
+.form{
+  display:flex;
+  justify-content:center;
+  gap:5px;
+}
+.form span{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+}
+.win{ background:#2ecc71 }
+.draw{ background:#b0bec5 }
+.loss{ background:#e74c3c }
+
+/* === HERO CARD CENTER (sem alterar visual) === */
+.hero-card.table-card {
+  max-width: 920px;
+  margin: 18px auto;
+  box-sizing: border-box;
+}
+
+.hero-card.table-card > .table-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  padding-top: 10px;
+}
+
+.hero-card .intro-grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 22px;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.hero-card .intro.card {
+  max-width: 760px;
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.hero-card .intro.card .btn {
+  margin: 0 8px;
+}
+
+.hero-card .legend { min-height: 0; }
+
+/* -------------------------
+   MOBILE: cards com linhas e últimas 5 centralizadas
+   (mantive suas quebras originais e as melhorei levemente)
+   ------------------------- */
+
+/* tighter mobile adjustments */
+@media (max-width: 920px) {
+  /* tabelas responsivas: permitir colapsar e rolar */
+  table{ min-width:720px; }
+
+  .topbar-inner{ padding:8px 12px; gap:8px; }
+  .brand-title{ font-size:15px; }
+  .brand-sub{ display:none; }
+  .table-header h2{ font-size:16px; }
+  .legend{ gap:6px; font-size:12px; }
+
+  /* hero card adapta para coluna */
+  .hero-card.table-card { max-width: calc(100% - 24px); margin: 12px auto; }
+  .hero-card .intro-grid { padding: 16px; flex-direction: column; gap: 12px; }
+  .hero-card .intro.card .btn { display:inline-block; margin:6px 6px 0 6px; }
+}
+
+@media (max-width: 520px) {
+  tbody tr{ margin:10px 6px; padding:10px; }
+  .logo-img, .logo-fallback{ width:40px; height:40px; }
+  .form span{ width:12px; height:12px; }
+}
+
+/* keep desktop look intact for wide screens */
+@media (min-width: 921px){
+  /* ensure table header sticky works */
+  thead th{ position:sticky; top:0; z-index:2; }
+}
+
+/* focus and accessibility */
+a:focus, button:focus, .club-cell:focus { outline:3px solid rgba(29,208,93,0.15); outline-offset:2px; border-radius:6px; }
+
+/* small utility */
+.hidden{ display:none !important; }
+
+
+span a{
+  color: #F67830;
+  text-decoration: none;
+}
+
+span a:hover{
+  color: #0c0844;
+}

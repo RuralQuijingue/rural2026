@@ -1,0 +1,350 @@
+:root{
+  --green:#0e0944;
+  --card:#ffffff;
+  --muted:#8a9399;
+  --border:#e6eaec;
+  --accent:#1dd05d;
+  --radius:10px;
+  --max-width:1180px;
+}
+
+/* Reset / base */
+*{ box-sizing:border-box; }
+html,body{ height:100%; margin:0; }
+body{
+  margin:0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: linear-gradient(180deg,#f2f4f5 0%, #f9fafb 100%);
+  color:#122;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* Helper container — garante mesma largura/padding entre topbar e conteúdo */
+.container-max {
+  max-width: var(--max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 12px;
+  padding-right: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* LOGO (mantive seu tamanho padrão) */
+.logo{ width:80px; height:80px; object-fit:contain; }
+
+/* ===== TOPBAR =====
+   Estrutura pensada para: brand | nav (flexível) | controls
+   .topbar-inner usa max-width + margin:auto pra seguir o limite
+*/
+.topbar{
+  background: var(--green);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1200;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+/* topbar-inner: mesma largura do .container-max (para alinhar com .page) */
+.topbar-inner{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  max-width: var(--max-width);
+  width: 100%;
+  margin: 0 auto;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  min-width:0; /* permite que filhos encolham corretamente */
+}
+
+/* BRAND */
+.brand{
+  display:flex;
+  flex-direction:column;
+  flex: 0 0 auto; /* ocupa só o necessário */
+  min-width: 0;   /* importante para overflow dentro do flex */
+}
+.brand-title{
+  color:#fff;
+  text-decoration:none;
+  font-weight:600;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.brand-sub{
+  font-size:12px;
+  opacity:.95;
+  color: rgba(255,255,255,0.9);
+  margin-top:3px;
+  white-space:nowrap;
+}
+
+/* NAV: ocupa o espaço restante, encolhendo quando necessário */
+.topnav{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex: 1 1 auto;          /* preenche espaço disponível */
+  justify-content:center;  /* centraliza nav no desktop */
+  overflow-x:auto;         /* permite scroll horizontal quando necessário */
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  min-width:0;             /* essencial para evitar overflow no container */
+}
+.topnav::-webkit-scrollbar{ display:none; }
+
+/* nav links - mantive nomes e estilos originais */
+.nav-link{
+  color: rgba(255,255,255,0.95);
+  text-decoration:none;
+  padding:7px 12px;
+  border-radius:8px;
+  font-size:14px;
+  white-space:nowrap;
+  flex: 0 0 auto; /* não encolhe demais o conteúdo do link */
+}
+.nav-link:hover{ color: #fca503; opacity:0.92; }
+.nav-link.active{
+  background: rgba(255,255,255,0.06);
+  border-bottom: 3px solid rgba(255,255,255,0.12);
+}
+
+/* CONTROLS (temporada etc) */
+.controls{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex: 0 0 auto;
+  min-width:0;
+}
+.season-label{ font-size:13px; display:flex; gap:6px; align-items:center; color:rgba(255,255,255,0.95); }
+.season-label select{
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #fff;
+  padding:6px 8px;
+  border-radius:6px;
+}
+
+/* ===== PAGE / conteúdo ===== */
+.page{
+  max-width: var(--max-width);
+  margin: 18px auto;
+  padding: 0 12px 80px;
+  box-sizing: border-box;
+}
+
+/* Filters / controls area (mantive estrutura original) */
+.filters{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:14px;
+}
+.left{ display:flex; flex-direction:column; gap:8px; min-width:0; }
+.tabs{ display:flex; gap:8px; flex-wrap:wrap; }
+.tab{
+  background:transparent;
+  border:1px solid transparent;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  color:var(--muted);
+  font-weight:600;
+  font-size:13px;
+}
+.tab.active{ background:#fff; border:1px solid var(--border); box-shadow:0 6px 12px rgba(0,0,0,0.04); color:#223; }
+
+.controls-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.small{ font-size:13px; color:var(--muted); display:flex; gap:8px; align-items:center; }
+
+.right{ display:flex; gap:10px; align-items:center; min-width:0; }
+#searchInput{ padding:8px 12px; border:1px solid var(--border); border-radius:8px; min-width:220px; max-width:400px; width:100%; }
+#dateFilter{ padding:6px; border-radius:6px; border:1px solid var(--border); }
+
+/* ===== MATCHES LIST / CARDS ===== */
+.matches-list{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:12px;
+  align-items:start;
+}
+
+/* Match card */
+.match-card{
+  background: var(--card);
+  border-radius:12px;
+  padding:14px;
+  border:1px solid var(--border);
+  box-shadow:0 6px 18px rgba(0,0,0,0.04);
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-height:110px;
+  box-sizing:border-box;
+}
+
+/* internal layout */
+.match-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  width:100%;
+}
+.teams{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  width:100%;
+  justify-content:space-between;
+  min-width:0;
+}
+.team{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:40%;
+  max-width:46%;
+  box-sizing:border-box;
+}
+.team .meta-venue{ font-size:12px; color:var(--muted); margin-top:4px; }
+
+/* Logo e texto */
+.logo-img{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  object-fit:contain;
+  background:#fff;
+  border:1px solid rgba(0,0,0,0.06);
+  padding:4px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  color:#222;
+}
+
+.team-name{ font-weight:700; font-size:15px; line-height:1; }
+.score{ font-weight:800; font-size:20px; min-width:64px; text-align:center; }
+
+.match-meta{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-items:flex-end;
+  width:220px;
+  text-align:right;
+  color:var(--muted);
+  box-sizing:border-box;
+}
+
+.match-footer{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  color:var(--muted);
+  font-size:13px;
+}
+
+/* badges & buttons (mantive nomes já usados) */
+.badge{ padding:6px 8px; border-radius:8px; font-weight:700; font-size:12px; color:#fff; display:inline-block; }
+.badge.upcoming{ background:#6c757d }
+.badge.finished{ background:#1e88e5 }
+
+.btn{ padding:8px 10px; border-radius:8px; border:none; background:var(--green); color:#fff; cursor:pointer; font-weight:700; }
+.btn.ghost{ background:#fff; border:1px solid var(--border); color:#223; }
+.icon-btn{ background:transparent; border:none; cursor:pointer; font-size:18px; color:var(--muted) }
+
+/* pagination & modal (mantidos) */
+.pagination{ margin-top:18px; display:flex; justify-content:center; gap:8px; }
+.modal{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(10,12,12,0.45); z-index:1200; padding:18px; }
+.modal.hidden{ display:none; }
+.modal-content{ background:var(--card); border-radius:12px; max-width:720px; width:100%; padding:18px; position:relative; border:1px solid var(--border); }
+.modal-close{ position:absolute; right:12px; top:12px; background:transparent; border:none; font-size:18px; cursor:pointer; }
+
+/* small helpers */
+.hidden{ display:none !important; }
+
+/* ----------------------------
+   RESPONSIVE ADJUSTMENTS
+   ---------------------------- */
+
+/* Tablet-ish: uma coluna para os cards */
+@media (max-width: 980px){
+  .matches-list{ grid-template-columns: 1fr; }
+  .logo-img{ width:48px; height:48px; padding:3px; }
+  .match-meta{ width:180px; text-align:right; }
+  #searchInput{ min-width:160px; }
+  /* nav alinhado à esquerda para economizar espaço */
+  .topnav{ justify-content:flex-start; }
+  .nav-link{ padding:7px 10px; font-size:13px; }
+}
+
+/* Mobile: stack layout, topbar empilha mas mantém mesma largura visual */
+@media (max-width: 760px){
+  .topbar-inner{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+  }
+
+  /* brand em linha com a logo (se houver) */
+  .brand{ flex-direction:row; align-items:center; gap:12px; width:100%; }
+
+  .topnav{
+    width:100%;
+    justify-content:flex-start;
+    gap:8px;
+    padding:6px 0;
+  }
+
+  .controls{ width:100%; justify-content:flex-end; }
+
+  .matches-list{ grid-template-columns:1fr; }
+  .match-row{ flex-direction:column; align-items:flex-start; gap:10px; }
+  .teams{ width:100%; flex-direction:row; align-items:center; justify-content:space-between; }
+  .team{ max-width:48%; min-width:0; }
+  .score{ font-size:18px; min-width:48px; }
+  .match-meta{ width:100%; text-align:left; align-items:flex-start; order:3; gap:4px; font-size:13px; }
+  .match-footer{ flex-direction:row; align-items:center; gap:10px; justify-content:space-between; width:100%; }
+}
+
+/* very small screens */
+@media (max-width:420px){
+  .topbar-inner{ padding:10px 10px; gap:8px; }
+  .brand-title{ font-size:15px; }
+  .brand-sub{ display:none; }
+  .logo{ width:64px; height:64px; }
+  .logo-img{ width:44px; height:44px; padding:3px; }
+  .team-name{ font-size:14px; }
+  .score{ font-size:16px; }
+  .match-meta{ font-size:12px; }
+  .btn{ padding:7px 8px; font-size:13px; }
+  #searchInput{ min-width:unset; width:100%; }
+  .nav-link{ font-size:12px; padding:6px 8px; }
+}
+
+/* Accessibility focus */
+.tab:focus, .btn:focus, .nav-link:focus, .icon-btn:focus{
+  outline:3px solid rgba(233, 163, 11, 0.825);
+  outline-offset:2px;
+  border-radius:8px;
+}
+
+
+span a{
+  color: #F67830;
+  text-decoration: none;
+}
+
+span a:hover{
+  color: #0c0844;
+}

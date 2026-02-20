@@ -1,0 +1,367 @@
+:root{
+  /* Identidade visual aplicada:
+     --green agora é a cor principal (laranja da arte)
+     Acrescentei --accent-blue para elementos de apoio (azul escuro)
+  */
+  --green:#0e0944;        /* laranja principal (substitui antiga --green) */
+  --accent-blue:#f9a109;  /* azul escuro secundário da arte */
+  --border:#eadfda;
+  --card:#fff8f6;
+  --muted:#6c6f73;
+  --max-width:1180px;
+  --radius:10px;
+}
+
+/* base */
+*{ box-sizing:border-box }
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background:#f7f5f2; /* tom neutro claro, combina com laranja */
+  color:#1b2b2b;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* HEADER */
+.topbar{
+  background:var(--green); /* laranja */
+  color:#fff;
+  position:sticky;
+  top:0;
+  z-index:10;
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+}
+
+.topbar-inner{
+  max-width:var(--max-width);
+  margin:auto;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.topbar .topbar-inner{
+  font-size: 20px;
+}
+
+.back, .close{
+  color:rgba(255,255,255,0.9);
+  text-decoration:none;
+  font-size:20px;
+}
+
+.brand{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  overflow:hidden;
+}
+
+.brand-title{
+  color:#fff;
+  text-decoration:none;
+  font-weight:700;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  overflow:hidden;
+}
+
+.brand-sub{
+  font-size:12px;
+  opacity:.95;
+  white-space:nowrap;
+}
+
+/* nav */
+.topnav{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  overflow-x:auto;
+}
+.topnav::-webkit-scrollbar{ display:none; }
+
+.nav-link{
+  color:rgba(255,255,255,0.95);
+  text-decoration:none;
+  padding:8px 12px;
+  border-radius:6px;
+  font-size:14px;
+  white-space:nowrap;
+}
+
+/* hover usa azul escuro para contraste com o laranja */
+.nav-link:hover{
+  color: var(--accent-blue);
+}
+
+/* fundo leve ao passar / ativo */
+.nav-link.active,
+.nav-link:hover{
+  background:rgba(255,255,255,.08);
+}
+
+/* controls */
+.controls label{
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.controls select{
+  background:rgba(255,255,255,.15);
+  border:none;
+  color:#fff;
+  padding:5px 8px;
+  border-radius:5px;
+}
+
+/* page layout */
+.page{
+  max-width:var(--max-width);
+  margin:20px auto;
+  padding:0 12px;
+}
+
+.table-card, .card{
+  background:var(--card);
+  border-radius:var(--radius);
+  border:1px solid var(--border);
+  box-shadow:0 6px 16px rgba(0,0,0,.05);
+  overflow:hidden;
+  padding:14px;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+/* table header */
+.table-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 4px 12px 4px;
+  border-bottom:1px solid var(--border);
+  gap:12px;
+  flex-wrap:wrap;
+}
+.table-header h2{ margin:0; font-size:18px; color:#223; }
+
+/* legend */
+.legend{ display:flex; gap:10px; align-items:center; font-size:13px; color:var(--muted) }
+.legend-item{ padding:6px 8px; border-radius:6px; color:white; font-weight:600; font-size:12px }
+.legend-item.sula{ background:#43a047 } /* verde (mantido) */
+.legend-item.rel{ background:#e53935 } /* vermelho (mantido) */
+/* --- Layout dos cards do topo (ajustado para 2 colunas) --- */
+.intro-grid{
+  display: grid;
+  /* agora só 2 colunas: conteúdo principal + card lateral (carousel) */
+  grid-template-columns: 1fr 360px;
+  gap: 14px;
+  padding: 12px 0 4px 0;
+  align-items: start;
+text-align: center;}
+
+/* O card do carousel deve comportar-se como um card normal */
+.carousel.card{
+  display: block;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+/* Carousel: coluna única interna e posicionamento das controls */
+.carousel{
+  position: relative;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px;
+  overflow: hidden;
+  gap: 8px;
+}
+
+/* items ocupam o espaço disponível corretamente */
+.carousel-items{
+  width: 100%;
+  display: block;
+}
+
+/* Cada item deve aparecer em bloco normal (sem grid) */
+.carousel-item{
+  display: block;
+  padding: 6px 0;
+}
+
+/* Garantir espaçamento correto do título e texto */
+.carousel-item h4{
+  margin: 4px 0 4px;
+}
+
+.carousel-item p{
+  margin: 4px 0 0;
+  display: block;
+}
+
+/* Controles ficam no rodapé do card */
+.carousel-controls{
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+/* buttons */
+.btn{
+  display:inline-block;
+  padding:8px 12px;
+  border-radius:8px;
+  background:var(--accent-blue); /* laranja */
+  color:#fff;
+  text-decoration:none;
+  font-weight:600;
+  margin-right:8px;
+}
+.btn.outline{
+  background:transparent;
+  border:1px solid var(--green);
+  color:var(--green);
+}
+
+/* carousel */
+.carousel{ position:relative; min-height:120px; display:flex; align-items:center; justify-content:center; padding:12px; overflow:hidden;}
+.carousel-items{ width:100%; height:100%; display:flex; align-items:center; gap:12px; }
+.carousel-item{ flex:1 0 100%; display:none; padding:8px; }
+.carousel-item.active{ display:block; }
+/* tag com fundo muito claro (laranja suave) e texto laranja */
+.carousel-item .tag{ display:inline-block; padding:4px 8px; border-radius:999px; background:#fff3ec; color:var(--green); font-weight:700; font-size:12px; margin-bottom:6px; }
+.carousel-controls{ position:absolute; right:8px; bottom:8px; display:flex; gap:6px; }
+.carousel-controls button{ border:1px solid var(--border); background:#fff; border-radius:6px; padding:6px 8px; cursor:pointer; }
+
+/* embed iframe card */
+.embed-card{ padding:10px; }
+.embed-frame{
+  width:100%;
+  min-height:420px;
+  border:1px solid #eee;
+  border-radius:8px;
+  display:block;
+}
+
+/* small controls above iframe */
+.include-controls{ margin:8px 0 10px 0; display:flex; justify-content:flex-end; }
+
+.link{ color:var(--accent-blue); text-decoration:none; font-weight:600; }
+
+/* match preview */
+.match-card .match-preview{ display:flex; align-items:center; gap:12px; justify-content:space-between; padding:8px 0; }
+.match-card .team{ display:flex; align-items:center; gap:8px; }
+.match-card img{ width:44px; height:44px; border-radius:50%; object-fit:cover; border:1px solid rgba(0,0,0,.06); background:#fff; }
+
+/* mini table & stats */
+.mini-table{ width:100%; border-collapse:collapse; margin-bottom:8px; }
+.mini-table th, .mini-table td{ padding:8px; text-align:left; border-bottom:1px solid #f0f2f3; font-size:14px; }
+.stats{ list-style:none; padding:0; margin:0; color:var(--muted) }
+.stats li{ margin-bottom:6px }
+
+/* responsive */
+@media (max-width: 920px) {
+  .intro-grid{ grid-template-columns: 1fr; }
+  .carousel, .match-card{ order:2 }
+  .embed-frame{ min-height:320px; }
+  
+  .logo {
+    width: 70px;
+    height: 70px;
+  }
+}
+
+@media (max-width: 520px) {
+  .topbar-inner{ padding:8px 12px; gap:8px; }
+  .brand-title{ font-size:15px; }
+  .brand-sub{ display:none; }
+  .embed-frame{ min-height:260px; }
+}
+
+/* focus and accessibility */
+a:focus, button:focus, .club-cell:focus {
+  outline:3px solid rgba(246,110,40,0.12); /* foco laranja suave */
+  outline-offset:2px;
+  border-radius:6px;
+}
+
+/* === Centralizar hero card (sem alterar cores) === */
+
+/* limita largura do hero e centraliza a caixa inteira */
+.hero-card.table-card {
+  max-width: 920px;    /* ajuste a largura máxima desejada */
+  margin: 18px auto;   /* centra horizontalmente */
+  box-sizing: border-box;
+}
+
+/* torna a header do hero centralizada */
+.hero-card.table-card > .table-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  padding-top: 10px;   /* mantém espaçamento coerente */
+}
+
+/* centraliza a grid interna e evita múltiplas colunas aqui */
+.hero-card .intro-grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 22px;         /* espaçamento interno do hero */
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+/* o card intro fica com largura controlada e texto centralizado */
+.hero-card .intro.card {
+  max-width: 760px;
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* espaçamento entre botões e centralização */
+.hero-card .intro.card .btn {
+  margin: 0 8px;
+}
+
+/* se existir .legend vazia, evita que empurre o layout */
+.hero-card .legend { min-height: 0; }
+
+/* RESPONSIVO: ajuste em telas pequenas */
+@media (max-width: 760px) {
+  .hero-card.table-card { max-width: calc(100% - 32px); margin: 12px auto; }
+  .hero-card .intro-grid { padding: 14px; flex-direction: column; gap: 12px; }
+  .hero-card .intro.card { padding: 6px 4px; }
+  .hero-card .intro.card .btn { display:inline-block; margin:6px 6px 0 6px; }
+}
+
+/* extra: se quiser centralizar também o h2 da página (opcional) */
+/* .page > h2 { text-align: center; } */
+
+span a{
+  color: #F67830;
+  text-decoration: none;
+}
+
+span a:hover{
+  color: #0c0844;
+}
+
