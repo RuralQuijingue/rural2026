@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Notícias — Campeonato Rural</title>
+  <link rel="stylesheet" href="styles/noticias.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <img src="imgs/LOGORURAL.png" alt="Logo do Campeonato Rural" class="logo">
+     <div class="brand">
+      <a href="index.html" class="brand-title">Campeonato Rural - Quijingue 2026</a>
+    </div>
+
+    <nav class="topnav">
+      <a href="index.html" class="nav-link ">Início</a>
+      <a href="partidas.html" class="nav-link">Partidas</a>
+      <a href="classificacao.html" class="nav-link">Classificação</a>
+      <a href="noticias.html" class="nav-link active">Notícias</a>
+      <a href="players.html" class="nav-link">Jogadores</a>
+      
+    </nav>
+
+    <div class="controls">
+      <label class="season-label">Temporada
+        <select id="seasonSelect">
+          <option value="2026">2026</option>
+       </select>
+      </label>
+    </div>
+  </div>
+</header>
+
+<main class="page news-page">
+  <section class="filters">
+    <div class="left">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-filter="all">Todas</button>
+        <button class="tab" data-filter="Destaque">Destaque</button>
+        <button class="tab" data-filter="Resumo">Resumo</button>
+        <button class="tab" data-filter="Pré-jogo">Pré-jogo</button>
+      </div>
+
+      <div class="controls-row">
+        <label class="small">
+          Ordenar
+          <select id="sortSelect">
+            <option value="date_desc">Mais recentes</option>
+            <option value="date_asc">Mais antigas</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="right">
+      <input id="searchInput" type="search" placeholder="Pesquisar notícias..." />
+      <label class="small">
+        Data
+        <input id="dateFilter" type="date" />
+      </label>
+    </div>
+  </section>
+
+  <!-- featured -->
+  <section id="newsSection" class="news-section">
+    <div class="table-header">
+      <h2>Notícias do Campeonato</h2>
+      <div class="news-controls">
+        <button id="news-prev" class="btn ghost" aria-label="Anterior">‹</button>
+        <button id="news-next" class="btn ghost" aria-label="Próximo">›</button>
+      </div>
+    </div>
+
+    <div id="newsFeatured" class="news-featured" aria-live="polite">
+      <!-- preenchido por JS -->
+    </div>
+
+    <div id="newsList" class="news-list" aria-live="polite">
+      <!-- cards gerados por JS -->
+    </div>
+
+    <div class="pagination" id="newsPagination"></div>
+  </section>
+</main>
+
+<!-- modal de leitura -->
+<div id="newsModal" class="modal hidden" role="dialog" aria-hidden="true">
+  <div class="modal-content" role="document">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+<footer style="text-align:center;padding:18px;color:var(--muted);font-size:13px;">
+  © Campeonato Rural de Quijingue — Desenvolvido por <span><a href="https://kvndossites.github.io/portf-lio/" target="_blank">KVN dos Sites</a></span>
+</footer>
+
+
+<script src="scripts/noticias.js"></script>
+</body>
+</html>
+

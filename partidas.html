@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Partidas — Campeonato Rural</title>
+  <link rel="stylesheet" href="styles/stylespart.css">
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <img src="imgs/LOGORURAL.png" alt="Logo do Campeonato Rural" class="logo">
+      <div class="brand">
+        <a href="index.html" class="brand-title">Campeonato Rural - Quijingue 2026</a>
+      </div>
+
+      <nav class="topnav">
+        <a href="index.html" class="nav-link ">Início</a>
+        <a href="partidas.html" class="nav-link active">Partidas</a>
+        <a href="classificacao.html" class="nav-link">Classificação</a>
+        <a href="noticias.html" class="nav-link ">Notícias</a>
+        <a href="players.html" class="nav-link">Jogadores</a>
+
+      </nav>
+
+
+      <div class="controls">
+        <label class="season-label">Temporada
+          <select id="seasonSelect">
+            <option value="2022">2026</option>
+          </select>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="page matches-page">
+    <section class="filters">
+      <div class="left">
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-status="all">Todos</button>
+          <button class="tab" data-status="upcoming">Próximos</button>
+          <button class="tab" data-status="finished">Finalizados</button>
+        </div>
+
+        <div class="controls-row">
+          <label class="small">
+            Rodada
+            <select id="roundSelect">
+              <option value="all">Todas</option>
+              <option value="1">1ª Rodada</option>
+              <option value="2">2ª Rodada</option>
+              <option value="3">3ª Rodada</option>
+              <option value="4">4ª Rodada</option>
+              <option value="5">5ª Rodada</option>
+            </select>
+
+          </label>
+
+          <label class="small">
+            Ordenar
+            <select id="sortSelect">
+              <option value="date_asc">Data ↑</option>
+              <option value="date_desc">Data ↓</option>
+              <option value="status">Status</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="right">
+        <input id="searchInput" type="search" placeholder="Procurar por time, local..." />
+        <label class="small">
+          Data
+          <input id="dateFilter" type="date" />
+        </label>
+      </div>
+    </section>
+
+    <section id="matchesList" class="matches-list" aria-live="polite">
+      <!-- cards gerados por JS -->
+    </section>
+
+    <div class="pagination" id="pagination"></div>
+  </main>
+
+  <!-- Modal de detalhes -->
+  <div id="matchModal" class="modal hidden" role="dialog" aria-hidden="true">
+    <div class="modal-content" role="document">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+  <footer style="text-align:center;padding:18px;color:var(--muted);font-size:13px;">
+    © Campeonato Rural de Quijingue — Desenvolvido por <span><a href="https://kvndossites.github.io/portf-lio/"
+        target="_blank">KVN dos Sites</a></span>
+  </footer>
+
+
+  <script src="scripts/partidas.js"></script>
+</body>
+
+</html>
+

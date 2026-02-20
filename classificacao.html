@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Classificação copa Rural</title>
+  <link rel="stylesheet" href="styles/styles.css">
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <img
+        src="imgs/LOGORURAL.png"
+        alt="Logo do Campeonato Rural" class="logo">
+
+      <div class="brand">
+        <a href="#home" class="brand-title">Campeonato Rural — Quijingue 2026</a>
+      </div>
+
+
+      <nav class="topnav">
+        <a href="index.html" class="nav-link">Início</a>
+        <a href="partidas.html" class="nav-link">Partidas</a>
+        <a href="classificacao.html" class="nav-link active">Classificação</a>
+        <a href="noticias.html" class="nav-link ">Notícias</a>
+        <a href="players.html" class="nav-link">Jogadores</a>
+      
+      </nav>
+
+
+      <div class="controls">
+        <label class="season-label">Temporada
+          <select id="season">
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+          </select>
+        </label>
+      </div>
+
+      <a class="close" href="#" title="Fechar">✕</a>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="content">
+      <div class="table-card">
+        <div class="table-header">
+          <h2>Classificação</h2>
+          <div class="legend">
+            <span class="legend-item classificado">Times</span>
+            <span class="legend-item eli">Campeão</span>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="standings" aria-label="Tabela de classificação">
+            <thead>
+              <tr>
+                <th class="col-pos">#</th>
+                <th class="col-club">Clube</th>
+                <th class="col-pts">Pts</th>
+                <th class="col-pj">PJ</th>
+                <th class="col-v">V</th>
+                <th class="col-e">E</th>
+                <th class="col-d">D</th>
+                <th class="col-gp">GP</th>
+                <th class="col-gc">GC</th>
+                <th class="col-sg">SG</th>
+                <th class="col-form">Últimas 5</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer style="text-align:center;padding:18px;color:var(--muted);font-size:13px;">
+  © Campeonato Rural de Quijingue — Desenvolvido por <span><a href="https://kvndossites.github.io/portf-lio/" target="_blank">KVN dos Sites</a></span>
+</footer>
+
+
+  <script src="scripts/scripts.js"></script>
+</body>
+
+</html>
+

@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bid — Jogadores — Campeonato Rural</title>
+  <!-- reaproveita seu CSS principal -->
+  <link rel="stylesheet" href="styles/players.css">
+  <style>
+    /* ajustes específicos para o roster */
+    .players-grid {
+      display: block;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .player-card {
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, .04);
+    }
+
+    .player-photo {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(0, 0, 0, .04);
+      background: #fff;
+    }
+
+    .player-meta {
+      margin-left: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .player-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .player-name {
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 2px;
+    }
+
+    .player-sub {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #fff3ec;
+      color: var(--green);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .stats-grid {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .no-data {
+      padding: 18px;
+      color: var(--muted);
+    }
+
+    /* team grouping */
+    .team-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      background: var(--card);
+    }
+
+    .team-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: linear-gradient(90deg, #f7fff9, #ffffff);
+      cursor: pointer;
+    }
+
+    .team-header h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .team-body {
+      padding: 12px 14px;
+      display: none;
+      background: #fff;
+    }
+
+    table.players-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table.players-table th,
+    table.players-table td {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid #f3f6f8;
+      font-size: 14px;
+    }
+
+    .count-pill {
+      background: linear-gradient(135deg, #F67830, #132b5b);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    @media (max-width:900px) {
+      .player-row {
+        flex-direction: row;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <img src="imgs/LOGORURAL.png" alt="Logo do Campeonato Rural" class="logo">
+      <div class="brand">
+        <a href="index.html" class="brand-title">Campeonato Rural — Quijingue 2026</a>
+      </div>
+
+      <nav class="topnav">
+        <a href="index.html" class="nav-link">Início</a>
+        <a href="partidas.html" class="nav-link">Partidas</a>
+        <a href="classificacao.html" class="nav-link">Classificação</a>
+        <a href="noticias.html" class="nav-link">Notícias</a>
+        <a href="players.html" class="nav-link active">Jogadores</a>
+      </nav>
+
+      <div class="controls">
+        <label class="season-label">Temporada
+          <select id="season">
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+          </select>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="content">
+      <div class="table-card">
+        <div class="table-header">
+          <h2>Bid Copa Rural Quijingue 2026</h2>
+          <div class="legend">
+            <span class="pill"></span>
+            <a id="open-sheet" class="link" href="
+https://docs.google.com/spreadsheets/d/1AGNqeY21fvCs26rZq-J6jjYVwcB_skh5v8XHeKoBsLY/htmlview?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAb21jcAPvodtleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAafBDxnX-LFuZr0Z_PzBqSj_g6ot9kMpn3wPgJQGJuGODqSI-OSbSNzqwv3z4Q_aem_NSfG8ny_YpzE15RqKsa73g
+" target="_blank" style="margin-left:8px">Abrir planilha →</a>
+          </div>
+        </div>
+
+        <div style="padding:12px">
+          <div class="filter-bar">
+            <input id="searchInput" type="search" placeholder="Pesquisar por nome, time, posição..."
+              style="padding:8px;border-radius:8px;border:1px solid var(--border);flex:1;min-width:200px" />
+            <select id="teamFilter" style="padding:8px;border-radius:8px;border:1px solid var(--border)">
+              <option value="all">Todos os times</option>
+            </select>
+            <select id="posFilter" style="padding:8px;border-radius:8px;border:1px solid var(--border)">
+              <option value="all">Todas as posições</option>
+            </select>
+          </div>
+
+          <div id="playersContainer">
+            <div id="playersGrid" class="players-grid"></div>
+            <div id="noData" class="no-data" style="display:none">Nenhum jogador encontrado.</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer style="text-align:center;padding:18px;color:var(--muted);font-size:13px;">
+    © Campeonato Rural de Quijingue — Desenvolvido por <span><a href="https://kvndossites.github.io/portf-lio/"
+        target="_blank">KVN dos Sites</a></span>
+  </footer>
+
+  <script src="scripts/players.js"></script>
+</body>
+
+</html>
+
